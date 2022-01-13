@@ -37,7 +37,9 @@ namespace cg{
             int create(cg_type type);
             int createAll();
             int write(cg_type type);
+            int writeAll();
             int bind(pid_t pid,cg_type type);
+            int getStatus();
             int clean();
     };
    

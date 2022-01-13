@@ -75,22 +75,34 @@ namespace cg{
         
         std::fstream s;
         fs::path path = getPath(type);
-        
-        if (type == MEM){
-            s.open(path / "memory.limit_in_bytes");
-            s<<getmem();
-            s.close();
-            s.open(path / "memory.memsw.limit_in_bytes");
-            s<<getmem();
-            s.close();
-        } else if (type == CPU) {
-            s.open(path / "cpu.cfs_quota_us");
-            s<<getcpu();
-            s.close();
+        try{
+            if (type == MEM){
+                s.open(path / "memory.limit_in_bytes");
+                s<<getmem();
+                s.close();
+                s.open(path / "memory.memsw.limit_in_bytes");
+                s<<getmem();
+                s.close();
+            } else if (type == CPU) {
+                s.open(path / "cpu.cfs_quota_us");
+                s<<getcpu();
+                s.close();
+            }
+        } catch (const std::fstream::failure &e){
+            ERROR("failed writing limits into cgroup %s",type_name[type].c_str());
         }
         return 1;
     }
     
+    int Cgroup::writeAll(){
+        for (const auto [key,value]: type_name){
+            if (write(key)==-1){
+                return -1;
+            };
+        }
+        return 1;
+    }
+
     int Cgroup::bind(pid_t pid,cg_type type){
         fs::path filename = getPath(type) / "tasks";
         std::fstream fs;
@@ -100,14 +112,41 @@ namespace cg{
             return -1;
         }
         INFO("writing into cgroup tasks : pid == %d",pid);
-        if (!(fs<<pid)){
-            ERROR("write failed");
+        
+        {  
+            std::string ss = std::to_string(pid);
+            fs.write(ss.c_str(),ss.length());
         }
+
+        // if (!(fs<<pid)){
+        //     ERROR("write failed");
+        // }
         fs.close();
         SUCCESS("fs bind successfully,closed");
         return 1;
     }
 
+    int Cgroup::getStatus(){
+        std::fstream s;
+        s.exceptions(std::fstream::badbit);
+        fs::path path = CG_ROOT / type_name[CPU] / JUDGER_TMP / "cpuacct.usage";
+        try{
+            std::cout<<path<<std::endl;
+            s.open(path);
+            if (!s.is_open()){
+                ERROR("open failed");
+            }
+            std::string str;
+            s>>str;
+            std::cout<<"-----Result------"<<std::endl;
+            std::cout<<str<<std::endl;
+            std::cout<<"-------end-------"<<std::endl;
+        } catch (std::fstream::failure &e){
+            ERROR("failed getting status");
+            return -1;
+        }
+        return 1;
+    }
     int Cgroup::clean(){
         for (const auto &[key,value]:type_name)
         {
