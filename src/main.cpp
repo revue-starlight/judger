@@ -2,6 +2,7 @@
 #include <filesystem>
 #include "utils/log.hpp"
 #include "cgroup.hpp"
+#include "spawn.hpp"
 using namespace std;
 int cgroupConfig();
 int cmdRun();
@@ -11,7 +12,6 @@ cg::Cgroup cgroup;
 int main(){
     cgroupConfig();
     cmdRun();
-    sleep(10);
     cgroupClean();
     return 0;
 }
@@ -28,10 +28,10 @@ int cgroupConfig(){
 }
 
 int cmdRun(){
-    int q;
-    cin>>q;
-    cgroup.bind(q,cg::CPU);
-    cgroup.bind(q,cg::MEM);
+    INFO("cmdRun");
+    sp::spawn ss;
+    string s = ss.mntList[0];
+    INFO("%s",s.c_str());
     return 0;
 }
 
