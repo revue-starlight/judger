@@ -8,7 +8,7 @@ namespace sp{
 
     class spawn{
         public:
-        std::vector <fs::path> mntList= {
+        std::vector <fs::path> mntList = {
         {"/3/3"},{"f/s"}
         };
         int execFn();
