@@ -40,32 +40,27 @@ int setCgroup(){
 }
 
 int clone_init_fn(void *args){
-    mount("proc","/proc","proc",0,NULL);
     INFO("init fn");
-    
-
-    std::fstream p;
-    fs::path fp;
-    fp/="";
-    fp/="proc";
-    fp/=to_string(getpid());
-    fp/="ns";
-    fp/="pid";
-    INFO("%s",fp.c_str());
     while(1)pause();
     return 0;
 }
 
 int clone_main_func(void *args){
+    mount(NULL,"/",NULL,MS_REC | MS_PRIVATE,NULL);
+    // chroot
+    
+    mount("proc","/proc","proc",0,NULL);
     INFO("waiting for cgroup configurations");
-    int pid = getpid();
-    printFD(getpid());
-    SUCCESS("PRINTED");
+    setuid(114); setgid(514); 
+    
+
     //execl("/bin/bash","/bin/bash",NULL);
-    return 1;
+    return 0;
 }
 
 int execute(){
+    int socks[2];
+    socketpair(AF_LOCAL,SOCK_STREAM,0,socks);
     ERROR("execute");
     // init pid;
     int stackSize = 512*sysconf(_SC_PAGE_SIZE); // PAGE_SIZE = 4096
@@ -76,25 +71,26 @@ int execute(){
     if (pidnsfd < 0){
         ERROR("unable to open %s",pidnsPath.c_str());
     }
-    
+
     if (setns(pidnsfd,CLONE_NEWPID)==-1){
         ERROR("unable to setns");
     }
     close(pidnsfd);
-    
+
     SUCCESS("set newly cloned pidns");
 
     // socket pair start:
-    int socks[2];
-    socketpair(AF_LOCAL,SOCK_STREAM,0,socks);
-    
-    mount(NULL,"/",NULL,MS_REC | MS_PRIVATE,NULL);
-    sleep(1);
-    int main_func_pid = clone(clone_main_func,(void*)((char*)alloca(stackSize)+stackSize),//CLONE_NEWUSER | 
-	CLONE_NEWNS | CLONE_NEWIPC | CLONE_NEWUTS | SIGCHLD,NULL);
+    int main_func_pid = clone(clone_main_func,(void*)((char*)alloca(stackSize)+stackSize),//CLONE_NEWUSER |
+      CLONE_NEWNS | CLONE_NEWIPC | CLONE_NEWUTS | SIGCHLD,NULL);
     int *x;
     waitpid(main_func_pid,x,0);
-    return 1;   
+    SUCCESS("sub func fin");
+    if (kill(init_pid,SIGKILL) == 0 ){
+      SUCCESS("init process killed");
+    } else {
+      ERROR("FAIL: KILL INIT PROCESS");
+    }
+    return 1;
 }
 
 int cgroupClean(){

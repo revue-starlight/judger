@@ -10,6 +10,6 @@ void printFD(const int pid){
     printf("failed FD CHECK");
   }
   for (const auto &entry: fs::directory_iterator(p)){
-    printf("%s->%s\n",p.c_str(),fs::read_symlink(entry.path()).c_str());
+    printf("%s->%s\n",entry.path().c_str(),fs::read_symlink(entry.path()).c_str());
   }
 }
