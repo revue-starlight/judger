@@ -42,6 +42,8 @@ int setCgroup(){
 int clone_init_fn(void *args){
     mount("proc","/proc","proc",0,NULL);
     INFO("init fn");
+    
+
     std::fstream p;
     fs::path fp;
     fp/="";
@@ -56,10 +58,10 @@ int clone_init_fn(void *args){
 
 int clone_main_func(void *args){
     INFO("waiting for cgroup configurations");
-    mount("proc","/proc","proc",0,NULL);
-    //int pid = getpid();
-    //printFD(pid);    
-    execl("/bin/bash","/bin/bash",NULL);
+    int pid = getpid();
+    printFD(getpid());
+    SUCCESS("PRINTED");
+    //execl("/bin/bash","/bin/bash",NULL);
     return 1;
 }
 
@@ -78,7 +80,6 @@ int execute(){
     if (setns(pidnsfd,CLONE_NEWPID)==-1){
         ERROR("unable to setns");
     }
-    
     close(pidnsfd);
     
     SUCCESS("set newly cloned pidns");
@@ -87,6 +88,8 @@ int execute(){
     int socks[2];
     socketpair(AF_LOCAL,SOCK_STREAM,0,socks);
     
+    mount(NULL,"/",NULL,MS_REC | MS_PRIVATE,NULL);
+    sleep(1);
     int main_func_pid = clone(clone_main_func,(void*)((char*)alloca(stackSize)+stackSize),//CLONE_NEWUSER | 
 	CLONE_NEWNS | CLONE_NEWIPC | CLONE_NEWUTS | SIGCHLD,NULL);
     int *x;

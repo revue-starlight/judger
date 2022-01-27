@@ -18,4 +18,4 @@ main.o:
 allutils.o:
 	${cc} -c src/utils/allutils.cc -std=c++17 -lstdc++fs
 clean:
-	rm cgroup.o main.o now.o spawn.o 
+	rm cgroup.o main.o now.o spawn.o allutils.o 
