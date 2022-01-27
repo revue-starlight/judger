@@ -9,11 +9,11 @@ namespace cg{
     namespace fs = std::filesystem;
     const std::filesystem::path JUDGER_TMP = "judger_tmp";
     const std::filesystem::path CG_ROOT = "/sys/fs/cgroup";
-    
     std::map <cg_type,std::string> type_name = {
         {CPU,"cpu"},
         {MEM,"memory"}
     };
+    
 
     fs::path getPath(cg_type type){
         return CG_ROOT / type_name[type] / JUDGER_TMP;

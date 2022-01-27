@@ -1,4 +1,4 @@
-#include "utils/log.hpp"
+#include "../src/utils/log.hpp"
 #include <iostream>
 int main(){
     INFO("hi");

@@ -1,3 +1,4 @@
+#include <csignal>
 #include <iostream>
 #include <fstream>
 #include <filesystem>
@@ -5,8 +6,10 @@
 #include <signal.h>
 #include <fcntl.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <sys/mount.h>
 #include <sys/socket.h>
+#include "utils/allutils.hpp"
 #include "utils/log.hpp"
 #include "cgroup.hpp"
 #include "spawn.hpp"
@@ -29,6 +32,7 @@ int setCgroup(){
     {// get Config (DEV)
         cgroup.setcpu(50000);
         cgroup.setmem(1024*1024*1024);
+	cgroup.setcpu(34);
     }
     if (cgroup.createAll()==-1) return -1;
     if (cgroup.writeAll()==-1) return -1;
@@ -36,7 +40,7 @@ int setCgroup(){
 }
 
 int clone_init_fn(void *args){
-    mount("proc","/proc","proc",NULL,NULL);
+    mount("proc","/proc","proc",0,NULL);
     INFO("init fn");
     std::fstream p;
     fs::path fp;
@@ -51,7 +55,11 @@ int clone_init_fn(void *args){
 }
 
 int clone_main_func(void *args){
-    execl("/bin/bash","bin/bash",NULL);
+    INFO("waiting for cgroup configurations");
+    mount("proc","/proc","proc",0,NULL);
+    //int pid = getpid();
+    //printFD(pid);    
+    execl("/bin/bash","/bin/bash",NULL);
     return 1;
 }
 
@@ -59,6 +67,7 @@ int execute(){
     ERROR("execute");
     // init pid;
     int stackSize = 512*sysconf(_SC_PAGE_SIZE); // PAGE_SIZE = 4096
+    // init a new pidnamespace as pid 1
     pid_t init_pid = clone(clone_init_fn,(void*)((char*)alloca(stackSize)+stackSize),CLONE_NEWPID,NULL);
     fs::path pidnsPath = "/proc"; pidnsPath /= to_string(init_pid); pidnsPath = pidnsPath / "ns" / "pid";
     int pidnsfd = open(pidnsPath.c_str(),O_RDONLY);
@@ -77,9 +86,11 @@ int execute(){
     // socket pair start:
     int socks[2];
     socketpair(AF_LOCAL,SOCK_STREAM,0,socks);
-
-    clone(clone_main_func,(void*)((char*)alloca(stackSize)+stackSize),CLONE_NEWUSER | CLONE_NEWNS | CLONE_NEWIPC | CLONE_NEWUTS,NULL);
-    sleep(100);
+    
+    int main_func_pid = clone(clone_main_func,(void*)((char*)alloca(stackSize)+stackSize),//CLONE_NEWUSER | 
+	CLONE_NEWNS | CLONE_NEWIPC | CLONE_NEWUTS | SIGCHLD,NULL);
+    int *x;
+    waitpid(main_func_pid,x,0);
     return 1;   
 }
 

@@ -1,0 +1,28 @@
+[
+	{
+		"directory": "/home/user/llvm/build",
+		"command":"clang++ src/main.cpp -lstdc++fs -std=c++17 -o file.out",
+		"file": "src/main.cpp"
+		
+	},
+	{
+		"directory": "/home/user/llvm/build",
+		"command":"clang++ src/cgroup.cc -c -std=c++17 -lstdc++fs",
+		"file": "src/cgroup.cc"
+	},
+	{
+		"directory": "/home/user/llvm/build",
+		"command":"clang++ -c src/spawn.cc -std=c++17 -lstdc++fs",
+		"file": "src/spawn.cc"
+	},
+	{
+		"directory": "/home/user/llvm/build",
+		"command":"clang++ src/utils/now.cc -lstdc++fs",
+		"file": "src/utils/now.cc"
+	},
+	{
+		"directory": "/home/user/llvm/build",
+		"command":"clang++ src/utils/allutils.cc -std=c++17 -lstdc++fs",
+		"file": "src/utils/allutils.cc"
+	}
+]
