@@ -52,7 +52,7 @@ static int clone_init_fn(void *) {
 
 
 int main(){
-    int stackSize = 1024*4096;
+    int stackSize = 1024*1024;
     int pid = clone(clone_init_fn,(void*)((char*)alloca(stackSize)+stackSize),CLONE_NEWPID,NULL);
     
 }

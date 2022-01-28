@@ -46,14 +46,12 @@ int clone_init_fn(void *args){
 }
 
 int clone_main_func(void *args){
-    mount(NULL,"/",NULL,MS_REC | MS_PRIVATE,NULL);
-    // chroot
-    
-    mount("proc","/proc","proc",0,NULL);
+    spawn sp;
+    sp.pivot_root();
+    mount("proc","/proc","proc",NULL,0);
+    INFO("waiting to mount")
     INFO("waiting for cgroup configurations");
-    setuid(114); setgid(514); 
-    
-
+    unshare(CLONE_NEWUSER);
     //execl("/bin/bash","/bin/bash",NULL);
     return 0;
 }
@@ -80,8 +78,8 @@ int execute(){
     SUCCESS("set newly cloned pidns");
 
     // socket pair start:
-    int main_func_pid = clone(clone_main_func,(void*)((char*)alloca(stackSize)+stackSize),//CLONE_NEWUSER |
-      CLONE_NEWNS | CLONE_NEWIPC | CLONE_NEWUTS | SIGCHLD,NULL);
+    int main_func_pid = clone(clone_main_func,(void*)((char*)alloca(stackSize)+stackSize),//CLONE_NEWUSER |//  CLONE_NEWIPC | CLONE_NEWUTS |
+      CLONE_NEWNS | SIGCHLD,NULL);
     int *x;
     waitpid(main_func_pid,x,0);
     SUCCESS("sub func fin");

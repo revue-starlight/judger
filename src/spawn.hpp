@@ -3,15 +3,15 @@
 #include <vector>
 #include <filesystem>
 #include <map>
+#include <string>
 namespace fs = std::filesystem;
-namespace sp{
 
-    class spawn{
-        public:
-        std::vector <fs::path> mntList = {
-        {"/3/3"},{"f/s"}
-        };
-        int execFn();
-        int mnt();
-    };
-}
+class spawn{
+    public:
+    std::string new_root = "/root/repos/judger/testfile/newroot";
+    const std::vector <std::string> vec = {"bin", "boot",  "dev" , "etc" , "home" , "lib"  ,"lib64" , "media" , "mnt"  ,
+    "mycpp" , "old_root","opt" , "proc"  ,"root" ,"run",
+    "sbin" , "srv" , "sys" , "tmp" , "usr" ,"var"};
+    int execFn();
+    int pivot_root();
+};
