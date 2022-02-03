@@ -1,6 +1,7 @@
 #pragma once
 #include <filesystem>
 #include <map>
+#include "utils/args.hpp"
 #include "utils/log.hpp"
 namespace cg{
     extern const std::filesystem::path JUDGER_TMP;
@@ -26,9 +27,9 @@ namespace cg{
             std::map <cg_type,unsigned int> limits;
             
         public:
-            Cgroup(){
-                limits[CPU]=10000; // 10%
-                limits[MEM]=1024*1024; // 1MB
+            explicit Cgroup(const Config &config){
+               limits[CPU]=config.getCPU();
+               limits[MEM]=config.getMEM();
             }
             int getmem();
             int getcpu();

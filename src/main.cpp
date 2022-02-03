@@ -18,26 +18,16 @@ using namespace std;
 int setCgroup();
 int execute();
 int cgroupClean();
-cg::Cgroup cgroup;
-Config config;
-int main(){
-    setCgroup();
+cg::Cgroup *cgroup;
+int main(int argc,char *argv[]){
+    Arg arg(argc,argv);
+    Config config(arg);
+    cgroup = new cg::Cgroup(config);
     execute();
     cgroupClean();
     return 0;
 }
 
-int setCgroup(){
-    int q = 1;
-    {// get Config (DEV)
-        cgroup.setcpu(50000);
-        cgroup.setmem(1024*1024*1024);
-	cgroup.setcpu(34);
-    }
-    if (cgroup.createAll()==-1) return -1;
-    if (cgroup.writeAll()==-1) return -1;
-    return 1;
-}
 
 int clone_init_fn(void *args){
     INFO("init fn");
@@ -77,7 +67,7 @@ int execute(){
 
     SUCCESS("set newly cloned pidns");
 
-    // socket pair start:
+
     int main_func_pid = clone(clone_main_func,(void*)((char*)alloca(stackSize)+stackSize),//CLONE_NEWUSER |//  CLONE_NEWIPC | CLONE_NEWUTS |
       CLONE_NEWNS | SIGCHLD,NULL);
     int *x;
@@ -93,7 +83,7 @@ int execute(){
 
 int cgroupClean(){
     INFO("clean");
-    cgroup.getStatus();
-    cgroup.clean();
+    cgroup->getStatus();
+    cgroup->clean();
     return 1;
 }

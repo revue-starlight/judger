@@ -9,6 +9,7 @@
                 "-fdiagnostics-color=always",
                 "-g",
                 "${file}",
+                "utils/args.cc",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}",
                 "-lstdc++fs"
