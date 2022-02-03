@@ -77,6 +77,7 @@ namespace cg{
         fs::path path = getPath(type);
         try{
             if (type == MEM){
+                INFO("write memory %d bytes to cgroup",getmem());
                 s.open(path / "memory.limit_in_bytes");
                 s<<getmem();
                 s.close();
@@ -84,6 +85,7 @@ namespace cg{
                 s<<getmem();
                 s.close();
             } else if (type == CPU) {
+                INFO("write cpu %d /1000 \% to cgroup",getcpu());
                 s.open(path / "cpu.cfs_quota_us");
                 s<<getcpu();
                 s.close();

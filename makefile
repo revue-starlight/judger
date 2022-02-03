@@ -1,6 +1,6 @@
 cc = g++
-judge: now.o cgroup.o spawn.o main.o allutils.o
-	${cc} main.o cgroup.o now.o spawn.o allutils.o -std=c++17 -lstdc++fs -o judge
+judge: now.o cgroup.o spawn.o main.o allutils.o args.o
+	${cc} main.o cgroup.o now.o spawn.o allutils.o args.o -std=c++17 -lstdc++fs -o judge
 	make clean
 
 now.o:
@@ -17,5 +17,8 @@ main.o:
 
 allutils.o:
 	${cc} -c src/utils/allutils.cc -std=c++17 -lstdc++fs
+
+args.o:
+	${cc} -c src/utils/args.cc -std=c++17 -lstdc++fs
 clean:
-	rm cgroup.o main.o now.o spawn.o allutils.o 
+	rm cgroup.o main.o now.o spawn.o allutils.o args.o

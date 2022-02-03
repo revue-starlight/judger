@@ -3,6 +3,7 @@
 #include <map>
 #include "utils/args.hpp"
 #include "utils/log.hpp"
+#include "config.hpp"
 namespace cg{
     extern const std::filesystem::path JUDGER_TMP;
     extern const std::filesystem::path CG_ROOT;

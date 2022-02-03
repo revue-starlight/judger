@@ -3,12 +3,13 @@
 #include "utils/args.hpp"
 #include <unistd.h>
 #include <filesystem>
+#include <stdlib.h>
 class Config{
     uid_t uid;
     gid_t gid;
     size_t rcpu,rmem;
     public:
-    explicit Config(const Arg &arg){
+    Config(const Arg &arg){
         uid = 0;
         gid = 0;
         rcpu = 0;
@@ -19,24 +20,23 @@ class Config{
         if (arg.getval("gid")!=""){
             gid = atoi(arg.getval("gid").c_str());
         }
-        if (arg.getval("rcpu")!=""){
-            rcpu = atoi(arg.getval("rcpu").c_str());
+        if (arg.getval("cpu")!=""){
+            rcpu = atoi(arg.getval("cpu").c_str());
         }
-        if (arg.getval("rmem")!=""){
-            rmem = atoi(arg.getval("rmem").c_str());
+        if (arg.getval("mem")!=""){
+            rmem = atoi(arg.getval("mem").c_str());
         }
     }
     uid_t getUid() const {
         return this->uid;
     }
-    uid_t getGid() const {
+    gid_t getGid() const {
         return this->gid;
     }
-    uid_t getCPU() const {
+    size_t getCPU() const {
         return this->rcpu;
     }
-    uid_t getMEM() const {
+    size_t getMEM() const {
         return this->rmem;
     }
-    virtual ~Config();
 };

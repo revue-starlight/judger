@@ -24,7 +24,7 @@ class Arg{
     virtual ~Arg(){}; 
     string getval(string opt) const {
       if (arg_.find(opt)!=arg_.end()){
-        return arg_[opt];
+        return (*arg_.find(opt)).second;
       } else return "";
     }
     void printAll() const;

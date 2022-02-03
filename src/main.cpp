@@ -19,10 +19,11 @@ int setCgroup();
 int execute();
 int cgroupClean();
 cg::Cgroup *cgroup;
+Config *config;
 int main(int argc,char *argv[]){
     Arg arg(argc,argv);
-    Config config(arg);
-    cgroup = new cg::Cgroup(config);
+    config = new Config(arg);
+    cgroup = new cg::Cgroup(*config);
     execute();
     cgroupClean();
     return 0;
@@ -39,14 +40,18 @@ int clone_main_func(void *args){
     spawn sp;
     sp.pivot_root();
     mount("proc","/proc","proc",NULL,0);
-    INFO("waiting to mount")
     INFO("waiting for cgroup configurations");
+    char buf[4];
+    recv(3,buf,4,0);
     unshare(CLONE_NEWUSER);
-    //execl("/bin/bash","/bin/bash",NULL);
+    setuid(config->getUid());
+    setgid(config->getGid());
+    execl("/bin/bash","/bin/bash",NULL);
     return 0;
 }
 
 int execute(){
+    cgroup->createAll();
     int socks[2];
     socketpair(AF_LOCAL,SOCK_STREAM,0,socks);
     ERROR("execute");
@@ -66,8 +71,10 @@ int execute(){
     close(pidnsfd);
 
     SUCCESS("set newly cloned pidns");
-
-
+    if (cgroup->writeAll()==-1){
+        ERROR("unable to write");
+    }
+    
     int main_func_pid = clone(clone_main_func,(void*)((char*)alloca(stackSize)+stackSize),//CLONE_NEWUSER |//  CLONE_NEWIPC | CLONE_NEWUTS |
       CLONE_NEWNS | SIGCHLD,NULL);
     int *x;
