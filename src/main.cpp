@@ -43,12 +43,11 @@ int clone_main_func(void *args){
     sp.pivot_root();
     mount("proc","/proc","proc",NULL,NULL);
     char buf[4];
-    recv(*fd,buf,4,0);
-    SUCCESS("RECEVED %s",buf);
     unshare(CLONE_NEWUSER);
     setuid(config->getUid());
     setgid(config->getGid());
-    execl("/bin/bash","/bin/bash",NULL);
+    recv(*fd,buf,4,0);
+    //execl("/root/repos/judger/testfile/sort8.out","/root/repos/judger/testfile/sort8.out",NULL);
     return 0;
 }
 
@@ -73,9 +72,9 @@ int execute(){
     close(pidnsfd);
 
     SUCCESS("set newly cloned pidns");
-    if (cgroup->writeAll()==-1){
-        ERROR("unable to write");
-    }
+    // if (cgroup->writeAll()==-1){
+    //     ERROR("unable to write");
+    // }
     int main_func_pid = clone(clone_main_func,(void*)((char*)alloca(stackSize)+stackSize),//CLONE_NEWUSER |//  CLONE_NEWIPC | CLONE_NEWUTS |
       CLONE_NEWNS | SIGCHLD,socks+1);
     cgroup->bind(main_func_pid,cg::CPU);
@@ -84,6 +83,7 @@ int execute(){
     send(socks[0],buf,4,0);
     int *x;
     waitpid(main_func_pid,x,0);
+    cgroup->getStatus();
     SUCCESS("sub func fin");
     if (kill(init_pid,SIGKILL) == 0 ){
       SUCCESS("init process killed");
@@ -95,7 +95,6 @@ int execute(){
 
 int cgroupClean(){
     INFO("clean");
-    cgroup->getStatus();
     cgroup->clean();
     return 1;
 }
