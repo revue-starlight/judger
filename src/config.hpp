@@ -10,10 +10,10 @@ class Config{
     size_t rcpu,rmem;
     public:
     Config(const Arg &arg){
-        uid = 0;
-        gid = 0;
-        rcpu = 0;
-        rmem = 0;
+        uid = 114;
+        gid = 514;
+        rcpu = 50000;
+        rmem = 11451419;
         if (arg.getval("uid")!=""){
             uid = atoi(arg.getval("uid").c_str());
         }

@@ -37,12 +37,14 @@ int clone_init_fn(void *args){
 }
 
 int clone_main_func(void *args){
+    int *fd = (int*) args;
+    INFO("clone_main_func");
     spawn sp;
     sp.pivot_root();
-    mount("proc","/proc","proc",NULL,0);
-    INFO("waiting for cgroup configurations");
+    mount("proc","/proc","proc",NULL,NULL);
     char buf[4];
-    recv(3,buf,4,0);
+    recv(*fd,buf,4,0);
+    SUCCESS("RECEVED %s",buf);
     unshare(CLONE_NEWUSER);
     setuid(config->getUid());
     setgid(config->getGid());
@@ -74,9 +76,12 @@ int execute(){
     if (cgroup->writeAll()==-1){
         ERROR("unable to write");
     }
-    
     int main_func_pid = clone(clone_main_func,(void*)((char*)alloca(stackSize)+stackSize),//CLONE_NEWUSER |//  CLONE_NEWIPC | CLONE_NEWUTS |
-      CLONE_NEWNS | SIGCHLD,NULL);
+      CLONE_NEWNS | SIGCHLD,socks+1);
+    cgroup->bind(main_func_pid,cg::CPU);
+    cgroup->bind(main_func_pid,cg::MEM);
+    char buf[] = "fin";
+    send(socks[0],buf,4,0);
     int *x;
     waitpid(main_func_pid,x,0);
     SUCCESS("sub func fin");

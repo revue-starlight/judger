@@ -14,7 +14,12 @@ namespace cg{
         {MEM,"memory"}
     };
     
-
+    /**
+     * @brief Get the Path of the judger
+     * 
+     * @param type 
+     * @return fs::path 
+     */
     fs::path getPath(cg_type type){
         return CG_ROOT / type_name[type] / JUDGER_TMP;
     }
@@ -119,10 +124,6 @@ namespace cg{
             std::string ss = std::to_string(pid);
             fs.write(ss.c_str(),ss.length());
         }
-
-        // if (!(fs<<pid)){
-        //     ERROR("write failed");
-        // }
         fs.close();
         SUCCESS("fs bind successfully,closed");
         return 1;
@@ -165,5 +166,6 @@ namespace cg{
         }
         return 1;
     }
+
 
 }

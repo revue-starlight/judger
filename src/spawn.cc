@@ -28,9 +28,9 @@ int spawn::pivot_root(){
 
 
 
-    INFO("mounting");
+    INFO("mounting...");
     for (const auto &place:vec){
-        mount(("/"+place).c_str(),(new_root+"/"+place).c_str(),NULL,MS_BIND,0);
+        mount(("/"+place).c_str(),(new_root+"/"+place).c_str(),NULL,MS_BIND | MS_RDONLY,0);
     }
     std::filesystem::path path = new_root / put_old;
     if (mkdir(path.c_str(),0777) == -1){
