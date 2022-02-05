@@ -1,5 +1,6 @@
 #include "spawn.hpp"
 #include "utils/log.hpp"
+#include "settings.hpp"
 #include <sched.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,6 +14,7 @@
 #include <iostream>
 #include <string.h>
 #include <vector>
+
 int spawn::execFn(){
         INFO("execFn");
         return 1;
@@ -29,14 +31,23 @@ int spawn::pivot_root(){
 
 
     INFO("mounting...");
+    /* mount ordinary file */
     for (const auto &place:vec){
-        mount(("/"+place).c_str(),(new_root+"/"+place).c_str(),NULL,MS_BIND | MS_RDONLY,0);
+        std::filesystem::path path = (new_root+"/"+place).c_str();
+        if (!std::filesystem::is_directory(path)){
+            std::filesystem::create_directory(path);
+        }
+        mount(("/"+place).c_str(),(new_root+"/"+place).c_str(),
+	    NULL,MS_BIND | MS_RDONLY,0);
     }
     std::filesystem::path path = new_root / put_old;
     if (mkdir(path.c_str(),0777) == -1){
         INFO(path.c_str());
         ERROR("mkdir");
     }
+    /* mount output directory */
+    mount((settings::rootpath + "/output").c_str(),(new_root + "/output").c_str(),
+    NULL,MS_BIND | MS_RDONLY,0);
 
     if (syscall(SYS_pivot_root, new_root.c_str(), path.c_str()) == -1){
         ERROR("chdir");
