@@ -9,6 +9,7 @@
 #include <sys/wait.h>
 #include <sys/mount.h>
 #include <sys/socket.h>
+#include <sys/resource.h>
 #include "utils/allutils.hpp"
 #include "utils/log.hpp"
 #include "cgroup.hpp"
@@ -47,7 +48,7 @@ int clone_main_func(void *args){
     setuid(config->getUid());
     setgid(config->getGid());
     recv(*fd,buf,4,0);
-    //execl("/root/repos/judger/testfile/sort8.out","/root/repos/judger/testfile/sort8.out",NULL);
+    execl("/root/repos/judger/testfile/sort3.out","/root/repos/judger/testfile/sort3.out",NULL);
     return 0;
 }
 
@@ -72,17 +73,22 @@ int execute(){
     close(pidnsfd);
 
     SUCCESS("set newly cloned pidns");
-    // if (cgroup->writeAll()==-1){
-    //     ERROR("unable to write");
-    // }
+
     int main_func_pid = clone(clone_main_func,(void*)((char*)alloca(stackSize)+stackSize),//CLONE_NEWUSER |//  CLONE_NEWIPC | CLONE_NEWUTS |
       CLONE_NEWNS | SIGCHLD,socks+1);
     cgroup->bind(main_func_pid,cg::CPU);
     cgroup->bind(main_func_pid,cg::MEM);
+    rlimit CPURlimit = config->getCPURlimit();
+    rlimit MEMRlimit = config->getMemRlimit();
+
+    prlimit(main_func_pid,RLIMIT_CPU,&CPURlimit,NULL);
+    prlimit(main_func_pid,RLIMIT_AS,&MEMRlimit,NULL);
     char buf[] = "fin";
     send(socks[0],buf,4,0);
-    int *x;
-    waitpid(main_func_pid,x,0);
+    int stat_loc;
+    waitpid(main_func_pid,&stat_loc,NULL);
+    int q = WTERMSIG(stat_loc);
+    INFO("process return %d",q);
     cgroup->getStatus();
     SUCCESS("sub func fin");
     if (kill(init_pid,SIGKILL) == 0 ){
