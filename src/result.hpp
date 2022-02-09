@@ -4,5 +4,9 @@
 #include <string>
 class Result{
   std::string time,mem;
-  size_t stat_loc;
+  const uint SUCCESS = 0;
+  const uint TLE = 1;
+  const uint MLE = 2;
+  const uint OLE = 4;
+  const uint RE = 8;
 };

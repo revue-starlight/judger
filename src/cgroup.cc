@@ -66,7 +66,11 @@ namespace cg{
         SUCCESS("%s created",path.c_str());        
         return 1;
     }
-
+    /**
+     * @brief create directory
+     * 
+     * @return int 
+     */
     int Cgroup::createAll(){
         for (auto [key,value]:type_name){
             if (create(key)==-1){
@@ -166,6 +170,4 @@ namespace cg{
         }
         return 1;
     }
-
-
 }

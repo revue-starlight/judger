@@ -15,6 +15,7 @@
 #include "cgroup.hpp"
 #include "spawn.hpp"
 #include "config.hpp"
+#include "result.hpp"
 using namespace std;
 namespace fs = filesystem;
 int setCgroup();
@@ -22,6 +23,7 @@ int execute();
 int cgroupClean();
 cg::Cgroup *cgroup;
 Config *config;
+Result result;
 int main(int argc,char *argv[]){
     Arg arg(argc,argv);
     config = new Config(arg);
@@ -49,8 +51,7 @@ int clone_main_func(void *args){
     setuid(config->getUid());
     setgid(config->getGid());
     recv(*fd,buf,4,0);
-    //execl("/root/repos/judger/testfile/sort3.out","/root/repos/judger/testfile/sort3.out",NULL);
-    execl("/bin/bash","/bin/bash",NULL);
+    execl("/root/repos/judger/testfile/sort3.out","/root/repos/judger/testfile/sort3.out",NULL);
     return 0;
 }
 
@@ -61,6 +62,7 @@ int execute(){
     ERROR("execute");
     // init pid;
     int stackSize = 512*sysconf(_SC_PAGE_SIZE); 
+    
     // init a new pidnamespace as pid 1
     pid_t init_pid = clone(clone_init_fn,(void*)((char*)alloca(stackSize)+stackSize),CLONE_NEWPID,NULL);
     fs::path pidnsPath = "/proc"; pidnsPath /= to_string(init_pid); pidnsPath = pidnsPath / "ns" / "pid";

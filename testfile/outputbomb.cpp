@@ -1,11 +1,17 @@
 #include <iostream>
-#include <unistd.h>
-#include <fcntl.h>
-#include "../src/utils/allutils.hpp"
+#include <fstream>
+#include <ios>
 using namespace std;
 int main(){
-    printFD(getpid());
-    int pid = getpid();
-    std::string s = "/proc/" + std::to_string(pid)+"/fd";
-
+    fstream outfile;
+    try{
+        outfile.open("/root/repos/judger/output/2.out");
+        //outfile.open("/root/repos/judger/CON");
+        outfile<<"hello world"<<endl;
+    } catch (exception &e){
+        cout<<e.what()<<endl;
+    }
+    cout<<outfile.good()<<endl;
+    outfile.close();
+    return 0;
 }
