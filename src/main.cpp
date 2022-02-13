@@ -46,12 +46,31 @@ int clone_main_func(void *args){
     spawn sp;
     sp.pivot_root();
     mount("proc","/proc","proc",0,NULL);
+
+
+    INFO("????????????????????????????????????????????????");
+    string fileName = config->getOutputPath();
+    INFO("????????????????????????????????????????????????");
+    FILE *fileP;
+    fileP = fopen(fileName.c_str(),"r");
+    if (fileP == NULL)
+    {
+        fileP = fopen(fileName.c_str(), "w");
+    }
+    fclose(fileP);
+
+    INFO("%s",fileName.c_str());
+    int fileNameFD = open(fileName.c_str(), O_WRONLY, 0666);
+    dup2(fileNameFD, STDOUT_FILENO); // Check `man stdin` for more info
+
+
     char buf[4];
     unshare(CLONE_NEWUSER);
     setuid(config->getUid());
     setgid(config->getGid());
     recv(*fd,buf,4,0);
-    execl("/root/repos/judger/testfile/sort3.out","/root/repos/judger/testfile/sort3.out",NULL);
+    //execl("/bin/bash","/bin/bash",NULL);
+    execl("/root/repos/judger/testfile/sort6.out","/root/repos/judger/testfile/sort6.out",NULL);
     return 0;
 }
 
@@ -91,10 +110,11 @@ int execute(){
     result = new Result;
     int stat_loc;
     waitpid(main_func_pid,&stat_loc,0);
-    result->returnValue = WTERMSIG(stat_loc);
+    result->returnValue = stat_loc;
     INFO("process return %d",result->returnValue);
     cgroup->getStatus(*result);
     result->checkValid(config); 
+    result->printResult();
     SUCCESS("task to run in sandbox complete");
 
     if (kill(init_pid,SIGKILL)==0){

@@ -13,5 +13,6 @@ int main(){
     a[i]=rand()%MAX;
   }
   sort(a,a+N);
+  printf("bye\n");
   return 0;
 }

@@ -13,5 +13,8 @@ int main(){
     a[i]=rand()%MAX;
   }
   sort(a,a+N);
+  for (int i=1;i<=100;i++){
+    printf("%d ",a[i]);
+  }
   return 0;
 }

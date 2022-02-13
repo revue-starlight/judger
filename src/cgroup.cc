@@ -169,17 +169,20 @@ namespace cg
             }
             std::string str;
             s >> str;
-            
+            INFO("cpu time usage:%s",str.c_str());
             result.time = nanoToMilli(str);
+            
         }
         catch (std::fstream::failure &e)
         {
             ERROR("failed getting status");
             return -1;
         }
+        s.close();
         fs::path memPath = CG_PATH / RESOURCE_NAME[MEM] / JUDGER_DIR_NAME / "memory.max_usage_in_bytes";
         try
         {
+            INFO("memCgroupPath:%s",memPath.c_str());
             s.open(memPath);
             if (!s.is_open())
             {
@@ -187,13 +190,16 @@ namespace cg
             }
             std::string str;
             s >> str;
+            INFO("mem usage:%s",str.c_str())
             result.mem = stoi(str);
         }
         catch (std::fstream::failure &e)
         {
+            s.close();
             ERROR("failed getting status");
             return -1;
         }
+        s.close();
         return 1;
     }
     int Cgroup::clean()

@@ -24,18 +24,24 @@ class Result{
    * check whether resource usage exceed the control
    * */
   void checkValid(Config *config){
-    if (config->getTime() >= time){
-      exceed = "TLE";
-    }
-    if (config->getMEM() >= mem){
-      exceed = "MLE";
-    }
     if (returnValue != 0){
       exceed = "RE";
+    }
+    if (config->getTime() < time){
+      exceed = "TLE";
+    }
+    if (config->getMEM() < mem){
+      INFO("config limit:%d, used:%d",config->getMEM(),mem);
+      exceed = "MLE";
     }
     if (ifOLE(config)){
       exceed = "OLE";
     }
+  }
+
+  void printResult(){
+    printf("cpu usage %dms \n memory usage %d byte \n  error:%s\n",time,mem,exceed.c_str());
+    printf("return value=%d\n",returnValue);
   }
   
 };

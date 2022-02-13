@@ -8,7 +8,7 @@
 class spawn{
     public:
     std::string new_root = "/root/repos/judger/runtime";
-    const std::vector <std::string> vec = {"bin", 
+    const std::vector <std::string> vec = {"bin",
       "boot",  "dev" , "etc" , "home" , "lib"  ,
       "lib64" , "media" , "mnt"  ,"mycpp" , 
       "old_root","opt" , "proc"  ,"root" ,"run",
