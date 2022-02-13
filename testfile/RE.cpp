@@ -15,8 +15,8 @@ int init_fn(void *arg){
 
 int LEN = 1024*128;
 int main(){
-    void* stack = mmap(NULL,LEN,PROT_READ|PROT_WRITE,MAP_PRIVATE|MAP_ANONYMOUS,NULL,NULL);
-    clone(init_fn,stack+LEN,SIGCHLD,NULL);
+    void* stack = mmap(NULL,LEN,PROT_READ|PROT_WRITE,MAP_PRIVATE|MAP_ANONYMOUS,0,NULL);
+    clone(init_fn,(void*)((size_t)stack+LEN),SIGCHLD,NULL);
     int status;
     wait(&status);
     if (WIFSIGNALED(status) == true){
