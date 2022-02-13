@@ -9,15 +9,15 @@
 class Config{
     uid_t uid_;
     gid_t gid_;
-    size_t rcpu_,rmem_;
-    size_t time_,mem_;
+    size_t cpu_quota_us,time_limit_in_ms,mem_limit_in_byte; 
+    size_t output_limit_in_byte;
     public:
     Config(const Arg &arg){
         uid_ = 114;
         gid_ = 514;
-        rcpu_ = 50000;
-        rmem_ = 1024*512;
-        time_ = 1000;
+        cpu_quota_us = 50000;
+        mem_limit_in_byte = 1024*512;
+        time_limit_in_ms = 1000;
         if (arg.getval("uid")!=""){
             uid_ = atoi(arg.getval("uid").c_str());
         }
@@ -25,11 +25,14 @@ class Config{
             gid_ = atoi(arg.getval("gid").c_str());
         }
         if (arg.getval("cpu")!=""){
-            rcpu_ = atoi(arg.getval("cpu").c_str());
+            cpu_quota_us = atoi(arg.getval("cpu").c_str());
         }
         if (arg.getval("mem")!=""){
-            rmem_ = atoi(arg.getval("mem").c_str());
+            mem_limit_in_byte = atoi(arg.getval("mem").c_str());
         }
+    }
+    size_t getOutputLimitInByte() const {
+        return output_limit_in_byte;
     }
     uid_t getUid() const {
         return this->uid_;
@@ -38,22 +41,27 @@ class Config{
         return this->gid_;
     }
     size_t getCPU() const {
-        return this->rcpu_;
+        return this->cpu_quota_us;
     }
+    // memory limitation in byte;
     size_t getMEM() const {
-        return this->rmem_;
+        return this->mem_limit_in_byte;
     }
-    rlimit getCPURlimit() const {
+    // time limitation in ms;
+    size_t getTime() const {
+        return this->time_limit_in_ms;
+    }
+    rlimit getTimeRlimit() const {
         rlimit CPURlimit;
-        CPURlimit.rlim_cur = ceil(1.0 * time_ / 1000 * 2);
-        CPURlimit.rlim_max = ceil(1.0 * time_ / 1000 * 3);
+        CPURlimit.rlim_cur = ceil(1.0 * time_limit_in_ms / 1000 * 2);
+        CPURlimit.rlim_max = ceil(1.0 * time_limit_in_ms / 1000 * 3);
         return CPURlimit;
     }
 
     rlimit getMemRlimit() const {
         rlimit MemRlimit;
-        MemRlimit.rlim_cur = ceil(1.5 * rmem_);
-        MemRlimit.rlim_cur = ceil(2 * rmem_);
+        MemRlimit.rlim_cur = ceil(1.5 * mem_limit_in_byte);
+        MemRlimit.rlim_cur = ceil(2 * mem_limit_in_byte);
         return MemRlimit;
     }
 

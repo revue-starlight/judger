@@ -23,7 +23,7 @@ int execute();
 int cgroupClean();
 cg::Cgroup *cgroup;
 Config *config;
-Result result;
+Result *result;
 int main(int argc,char *argv[]){
     Arg arg(argc,argv);
     config = new Config(arg);
@@ -45,7 +45,7 @@ int clone_main_func(void *args){
     INFO("clone_main_func");
     spawn sp;
     sp.pivot_root();
-    mount("proc","/proc","proc",NULL,NULL);
+    mount("proc","/proc","proc",0,NULL);
     char buf[4];
     unshare(CLONE_NEWUSER);
     setuid(config->getUid());
@@ -57,24 +57,22 @@ int clone_main_func(void *args){
 
 int execute(){
     cgroup->createAll();
+    cgroup->write(cg::MEM);
+    cgroup->write(cg::CPU);
     int socks[2];
     socketpair(AF_LOCAL,SOCK_STREAM,0,socks);
-    ERROR("execute");
-    // init pid;
-    int stackSize = 512*sysconf(_SC_PAGE_SIZE); 
-    
-    // init a new pidnamespace as pid 1
+    int stackSize = 512*sysconf(_SC_PAGE_SIZE);
     pid_t init_pid = clone(clone_init_fn,(void*)((char*)alloca(stackSize)+stackSize),CLONE_NEWPID,NULL);
     fs::path pidnsPath = "/proc"; pidnsPath /= to_string(init_pid); pidnsPath = pidnsPath / "ns" / "pid";
     int pidnsfd = open(pidnsPath.c_str(),O_RDONLY);
     if (pidnsfd < 0){
         ERROR("unable to open %s",pidnsPath.c_str());
     }
-
     if (setns(pidnsfd,CLONE_NEWPID)==-1){
         ERROR("unable to setns");
     }
     close(pidnsfd);
+    
 
     SUCCESS("set newly cloned pidns");
 
@@ -82,20 +80,24 @@ int execute(){
       CLONE_NEWNS | SIGCHLD,socks+1);
     cgroup->bind(main_func_pid,cg::CPU);
     cgroup->bind(main_func_pid,cg::MEM);
-    rlimit CPURlimit = config->getCPURlimit();
-    rlimit MEMRlimit = config->getMemRlimit();
 
+
+    rlimit CPURlimit = config->getTimeRlimit();
+    rlimit MEMRlimit = config->getMemRlimit();
     prlimit(main_func_pid,RLIMIT_CPU,&CPURlimit,NULL);
     prlimit(main_func_pid,RLIMIT_AS,&MEMRlimit,NULL);
-    char buf[] = "fin";
-    send(socks[0],buf,4,0);
+
+    char buf[] = "fin"; send(socks[0],buf,4,0);
+    result = new Result;
     int stat_loc;
-    waitpid(main_func_pid,&stat_loc,NULL);
-    int q = WTERMSIG(stat_loc);
-    INFO("process return %d",q);
-    cgroup->getStatus();
-    SUCCESS("sub func fin");
-    if (kill(init_pid,SIGKILL) == 0 ){
+    waitpid(main_func_pid,&stat_loc,0);
+    result->returnValue = WTERMSIG(stat_loc);
+    INFO("process return %d",result->returnValue);
+    cgroup->getStatus(*result);
+    result->checkValid(config); 
+    SUCCESS("task to run in sandbox complete");
+
+    if (kill(init_pid,SIGKILL)==0){
       SUCCESS("init process killed");
     } else {
       ERROR("FAIL: KILL INIT PROCESS");
