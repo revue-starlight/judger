@@ -20,7 +20,8 @@ int spawn::execFn(){
         return 1;
     }
 
-int spawn::pivot_root(){
+int spawn::pivot_root(Config *conf){
+    INFO("spawn:pivot root START");
     const std::filesystem::path put_old = "oldrootfs";
     if (mount(NULL, "/", NULL, MS_REC | MS_PRIVATE, NULL) == -1)
         ERROR("mount-MS_PRIVATE");
@@ -29,8 +30,6 @@ int spawn::pivot_root(){
         ERROR("mount-MS_BIND");
 
 
-
-    INFO("mounting...");
     /* mount ordinary file */
     for (const auto &place:vec){
         std::filesystem::path path = (new_root+"/"+place).c_str();
@@ -46,8 +45,14 @@ int spawn::pivot_root(){
         ERROR("mkdir");
     }
     /* mount output directory */
-    mount((settings::rootpath + "/output").c_str(),(new_root + "/output").c_str(),
+    mount((conf->getInputDirectoryToMount()).c_str(),(new_root + "/output").c_str(),
     NULL,MS_BIND | MS_RDONLY,0);
+
+    /* mount input directory */
+    mount((conf->getOutputDirectoryToMount()).c_str(),(new_root + "/input").c_str(),
+    NULL,MS_BIND | MS_RDONLY,0);
+
+    
 
     if (syscall(SYS_pivot_root, new_root.c_str(), path.c_str()) == -1){
         ERROR("chdir");
@@ -65,5 +70,6 @@ int spawn::pivot_root(){
     if (rmdir(put_old.c_str()) == -1)
         perror("rmdir");
 
+    INFO("pivot root finished");
     return 1;
 }

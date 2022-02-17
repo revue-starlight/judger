@@ -10,7 +10,6 @@
 namespace cg
 {
     namespace fs = std::filesystem;
-    const std::filesystem::path JUDGER_DIR_NAME = "judger_tmp";
     const std::filesystem::path CG_PATH = "/sys/fs/cgroup";
     std::map<cg_type, std::string> RESOURCE_NAME = {
         {CPU, "cpu"},
@@ -22,11 +21,14 @@ namespace cg
      * @param type
      * @return fs::path
      */
-    fs::path getPath(cg_type type)
+    fs::path getPath(cg_type type,Cgroup *cg)
     {
-        return CG_PATH / RESOURCE_NAME[type] / JUDGER_DIR_NAME;
+        return CG_PATH / RESOURCE_NAME[type] / cg->getSandboxId();
     }
 
+    std::string Cgroup::getSandboxId() const {
+        return this->SANDBOX_ID;
+    }
     int Cgroup::getMem()
     {
         return this->limits[MEM];
@@ -44,7 +46,7 @@ namespace cg
         INFO("writing into cgroup (path: %s)", path.c_str());
         if (fs::is_directory(path))
         {
-            path /= JUDGER_DIR_NAME;
+            path /= SANDBOX_ID;
             bool exist = fs::is_directory(path);
             if (exist)
             {
@@ -94,7 +96,7 @@ namespace cg
     {
 
         std::fstream s;
-        fs::path path = getPath(type);
+        fs::path path = getPath(type,this);
         try
         {
             if (type == MEM)
@@ -136,7 +138,7 @@ namespace cg
 
     int Cgroup::bind(pid_t pid, cg_type type)
     {
-        fs::path filename = getPath(type) / "tasks";
+        fs::path filename = getPath(type,this) / "tasks";
         std::fstream fs;
         fs.open(filename);
         if (!fs.is_open())
@@ -159,7 +161,7 @@ namespace cg
     {
         std::fstream s;
         s.exceptions(std::fstream::badbit);
-        fs::path CPUpath = CG_PATH / RESOURCE_NAME[CPU] / JUDGER_DIR_NAME / "cpuacct.usage";
+        fs::path CPUpath = CG_PATH / RESOURCE_NAME[CPU] / SANDBOX_ID / "cpuacct.usage";
         try
         {
             s.open(CPUpath);
@@ -179,7 +181,7 @@ namespace cg
             return -1;
         }
         s.close();
-        fs::path memPath = CG_PATH / RESOURCE_NAME[MEM] / JUDGER_DIR_NAME / "memory.max_usage_in_bytes";
+        fs::path memPath = CG_PATH / RESOURCE_NAME[MEM] / SANDBOX_ID / "memory.max_usage_in_bytes";
         try
         {
             INFO("memCgroupPath:%s",memPath.c_str());
@@ -206,7 +208,7 @@ namespace cg
     {
         for (const auto &[key, value] : RESOURCE_NAME)
         {
-            fs::path path = CG_PATH / value / JUDGER_DIR_NAME;
+            fs::path path = CG_PATH / value / SANDBOX_ID;
             INFO("removing cgroup %s", path.c_str());
             try
             {

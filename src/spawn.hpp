@@ -4,7 +4,7 @@
 #include <filesystem>
 #include <map>
 #include <string>
-
+#include "config.hpp"
 class spawn{
     public:
     std::string new_root = "/root/repos/judger/runtime";
@@ -14,5 +14,5 @@ class spawn{
       "old_root","opt" , "proc"  ,"root" ,"run",
       "sbin" , "srv" , "sys" , "tmp" , "usr" ,"var"};
     int execFn();
-    int pivot_root();
+    int pivot_root(Config *conf);
 };

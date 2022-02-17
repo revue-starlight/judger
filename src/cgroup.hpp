@@ -6,7 +6,6 @@
 #include "result.hpp"
 #include "config.hpp"
 namespace cg{
-    extern const std::filesystem::path JUDGER_DIR_NAME;
     extern const std::filesystem::path CG_PATH;
     extern const std::filesystem::path OUTPUT_PATH;
     enum cg_type{
@@ -37,11 +36,14 @@ namespace cg{
              */
             std::map <cg_type,unsigned int> limits;
             
+            const std::string SANDBOX_ID;
+            
         public:
-            explicit Cgroup(const Config &config){
+            explicit Cgroup(const Config &config):SANDBOX_ID(config.getId()){
                limits[CPU]=config.getCPU();
                limits[MEM]=config.getMEM();
             }
+            string getSandboxId() const;
             int getMem();
             int getCPU();
             /**

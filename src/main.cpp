@@ -44,33 +44,47 @@ int clone_main_func(void *args){
     int *fd = (int*) args;
     INFO("clone_main_func");
     spawn sp;
-    sp.pivot_root();
+    sp.pivot_root(config);
+    INFO("mount proc");
     mount("proc","/proc","proc",0,NULL);
 
+    INFO("opening file");
+   
+    string fileName = config->getOutputName();
+    string inputName = config->getInputName();
+    WARNING("inputname = %s",inputName.c_str());
+    WARNING("command = %s",config->getCommand().c_str());
+    
 
-    INFO("????????????????????????????????????????????????");
-    string fileName = config->getOutputPath();
-    INFO("????????????????????????????????????????????????");
+
     FILE *fileP;
+    // fileP = fopen(fileName.c_str(),"r");
+    // if (fileP == NULL)
+    // {
+    //     fileP = fopen(fileName.c_str(), "w");
+    // }
+    // fclose(fileP);
+    // int inputFD = open(inputName.c_str(), O_WRONLY, 0666);
+    // dup2(inputFD, STDIN_FILENO);
+
+
     fileP = fopen(fileName.c_str(),"r");
     if (fileP == NULL)
     {
         fileP = fopen(fileName.c_str(), "w");
     }
     fclose(fileP);
-
-    INFO("%s",fileName.c_str());
-    int fileNameFD = open(fileName.c_str(), O_WRONLY, 0666);
-    dup2(fileNameFD, STDOUT_FILENO); // Check `man stdin` for more info
-
+    int outputFD = open(fileName.c_str(), O_WRONLY, 0666);
+    SUCCESS("redirect filename to %s",fileName.c_str());
+    dup2(outputFD, STDOUT_FILENO); // Check `man stdin` for more info
 
     char buf[4];
     unshare(CLONE_NEWUSER);
     setuid(config->getUid());
     setgid(config->getGid());
     recv(*fd,buf,4,0);
-    //execl("/bin/bash","/bin/bash",NULL);
-    execl("/root/repos/judger/testfile/sort6.out","/root/repos/judger/testfile/sort6.out",NULL);
+    execl("/bin/bash","/bin/bash",NULL);
+    //execl(config->getCommand().c_str(),config->getCommand().c_str(),NULL);
     return 0;
 }
 
