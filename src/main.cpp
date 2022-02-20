@@ -58,15 +58,6 @@ int clone_main_func(void *args){
 
 
     FILE *fileP;
-    // fileP = fopen(fileName.c_str(),"r");
-    // if (fileP == NULL)
-    // {
-    //     fileP = fopen(fileName.c_str(), "w");
-    // }
-    // fclose(fileP);
-    // int inputFD = open(inputName.c_str(), O_WRONLY, 0666);
-    // dup2(inputFD, STDIN_FILENO);
-
 
     fileP = fopen(fileName.c_str(),"r");
     if (fileP == NULL)
@@ -83,8 +74,7 @@ int clone_main_func(void *args){
     setuid(config->getUid());
     setgid(config->getGid());
     recv(*fd,buf,4,0);
-    execl("/bin/bash","/bin/bash",NULL);
-    //execl(config->getCommand().c_str(),config->getCommand().c_str(),NULL);
+    execl(config->getCommand().c_str(),config->getCommand().c_str(),NULL);
     return 0;
 }
 
@@ -117,8 +107,10 @@ int execute(){
 
     rlimit CPURlimit = config->getTimeRlimit();
     rlimit MEMRlimit = config->getMemRlimit();
+    rlimit SZRlimit = config->getSizeRlimit();
     prlimit(main_func_pid,RLIMIT_CPU,&CPURlimit,NULL);
     prlimit(main_func_pid,RLIMIT_AS,&MEMRlimit,NULL);
+    prlimit(main_func_pid,RLIMIT_AS,&SZRlimit,NULL);
 
     char buf[] = "fin"; send(socks[0],buf,4,0);
     result = new Result;

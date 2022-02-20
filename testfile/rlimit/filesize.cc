@@ -37,8 +37,8 @@ int main_func(void *arg){
 int main(){
     void *stack = mmap(NULL,len,PROT_READ | PROT_WRITE | PROT_EXEC,MAP_ANONYMOUS | MAP_SHARED,-1,0);
     rlimit fsizeRes;
-    fsizeRes.rlim_cur = 2400;
-    fsizeRes.rlim_max = 3200;
+    fsizeRes.rlim_cur = 24;
+    fsizeRes.rlim_max = 32;
     //setrlimit(RLIMIT_FSIZE,&fsizeRes);
     int main_func_pid =  clone(main_func,(void*)((size_t)stack+len),SIGCHLD,NULL); 
     prlimit(main_func_pid,RLIMIT_FSIZE,&fsizeRes,NULL);

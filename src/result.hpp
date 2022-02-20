@@ -9,38 +9,41 @@
 class Result{
   private:
   int ifOLE(Config *config){
-    std::filesystem::space_info devi = std::filesystem::space("/root/repos/judger/output");
-    if (devi.capacity-devi.free > config->getOutputLimitInByte()){
-      return 1;
+    try{
+      std::filesystem::space_info devi = std::filesystem::space("/root/repos/judger/output");
+      if (devi.capacity-devi.free > config->getOutputLimitInByte()){
+        return 1;
+      }
+      return 0;
+    } catch (exception e){
+      ERROR("%s",e.what());
     }
-    return 0;
   }
   public:
-  // time in ms, mem in bytes
   size_t time,mem;
   uint returnValue;
-  std::string exceed;
+  std::string exceedInfo;
   /**
    * check whether resource usage exceed the control
    * */
   void checkValid(Config *config){
     if (returnValue != 0){
-      exceed = "RE";
+      if (returnValue == 25){
+        exceedInfo = "OLE";
+      }
+      else exceedInfo = "RE";
     }
     if (config->getTime() < time){
-      exceed = "TLE";
+      exceedInfo = "TLE";
     }
     if (config->getMEM() < mem){
       INFO("config limit:%d, used:%d",config->getMEM(),mem);
-      exceed = "MLE";
-    }
-    if (ifOLE(config)){
-      exceed = "OLE";
+      exceedInfo = "MLE";
     }
   }
 
   void printResult(){
-    printf("cpu usage %dms \n memory usage %d byte \n  error:%s\n",time,mem,exceed.c_str());
+    printf("cpu usage %dms \n memory usage %d byte \n  error:%s\n",time,mem,exceedInfo.c_str());
     printf("return value=%d\n",returnValue);
   }
   
