@@ -7,7 +7,21 @@
 #include <stdlib.h>
 #include <string>
 #include <sys/resource.h>
+
+enum class scmpWB_e {whitelist,blacklist};
+struct ScmpConfig{
+        std::vector <int> scmpList = {
+            SCMP_SYS(read), SCMP_SYS(write), 
+            SCMP_SYS(fstat), SCMP_SYS(mmap), 
+            SCMP_SYS(mprotect), SCMP_SYS(munmap), 
+            SCMP_SYS(brk), SCMP_SYS(access), 
+            SCMP_SYS(exit_group)
+        };
+        scmpWB_e scmpWB=scmpWB_e::whitelist; // use Whitelist or Blacklist;
+};
+
 class Config{
+    ScmpConfig scmpConfig;
     std::string id;
     std::string inputDirectoryToMount;
     std::string outputDirectoryToMount;
@@ -90,7 +104,10 @@ class Config{
         return MemRlimit;
     }
 
-    rlimit getR
+    ScmpConfig getScmpConfig() const {
+        return scmpConfig;
+    }
+
     std::string getInputDirectoryToMount() const {
         return this->inputDirectoryToMount;
     }

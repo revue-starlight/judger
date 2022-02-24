@@ -18,58 +18,37 @@ typedef int (*main_t)(int, char **, char **);
 # define __unbounded
 #endif
 
-int __libc_start_main(main_t main, int argc, 
-    char *__unbounded *__unbounded ubp_av,
-    ElfW(auxv_t) *__unbounded auxvec,
-    __typeof (main) init,
-    void (*fini) (void),
-    void (*rtld_fini) (void), void *__unbounded
-    stack_end)
+static int (*main_orig)(int, char **, char **);
+
+int main_hook(int argc, char **argv, char **envp)
 {
-
-    int i;
-    ssize_t len;
-    void *libc;
-    int whitelist_length = sizeof(syscalls_whitelist) / sizeof(int);
-    scmp_filter_ctx ctx = NULL;
-    int (*libc_start_main)(main_t main,
-        int,
-        char *__unbounded *__unbounded,
-        ElfW(auxv_t) *,
-        __typeof (main),
-        void (*fini) (void),
-        void (*rtld_fini) (void),
-        void *__unbounded stack_end);
-
-    // Get __libc_start_main entry point
-    libc = dlopen("libc.so.6", RTLD_LOCAL  | RTLD_LAZY);
-    if (!libc) {
-        exit(1);
-    }
-
-    libc_start_main = (int (*)(main_t main, int, char **, Elf64_auxv_t *, main_t, void (*fini)(), void (*rtld_fini)(), void *stack_end))dlsym(libc, "__libc_start_main");
-    if (!libc_start_main) {
-        exit(2);
-    }
-    
-    ctx = seccomp_init(SCMP_ACT_KILL);
-    if (!ctx) {
-        exit(3);
-    }
-    for(i = 0; i < whitelist_length; i++) {
-        if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, 
-                             syscalls_whitelist[i], 0)) {
-            exit(4);
-        }
-    }
-    if (seccomp_load(ctx)) {
-        exit(5);
-    }
-    seccomp_release(ctx);
-    return ((*libc_start_main)(main, argc, ubp_av, auxvec,
-                 init, fini, rtld_fini, stack_end));
+    printf("Hooker\n");
+    int ret = main_orig(argc, argv, envp);
+    printf("--- After main ----\n");
+    printf("main() returned %d\n", ret);
+    return 0;
 }
 
-int main(){
+/*
+ *  * Wrapper for __libc_start_main() that replaces the real main
+ *   * function with our hooked version.
+ *    */
+int __libc_start_main(
+    int (*main)(int, char **, char **),
+    int argc,
+    char **argv,
+    int (*init)(int, char **, char **),
+    void (*fini)(void),
+    void (*rtld_fini)(void),
+    void *stack_end)
+{
+    printf("libc_\n");
+    /* Save the real main function address */
+    main_orig = main;
 
+    /* Find the real __libc_start_main()... */
+    typeof(&__libc_start_main) orig =  (typeof(&__libc_start_main)) dlsym(RTLD_NEXT, "__libc_start_main");
+
+    /* ... and call it with our custom main function */
+    return orig(main_hook, argc, argv, init, fini, rtld_fini, stack_end);
 }
